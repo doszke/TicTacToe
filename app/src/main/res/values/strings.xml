@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">TicTacToe</string>
+
+    <string name="main_title">Kółko i krzyżyk</string>
+    <string name="main_start">Start!</string>
+
+    <string name="oponent_selection_header">Z kim chcesz grać?</string>
+    <string name="oponent_selection_2_players">Z drugim graczem</string>
+    <string name="oponent_selection_ai">Z komputerem</string>
+    <string name="pc_icon_name">pc_icon</string>
+    <string name="two_player_icon_name">two_player_icon</string>
+
+    <string name="diff_lvl_header">Wybierz poziom trudności</string>
+    <string name="diff_lvl_easy_header">Łatwy</string>
+    <string name="diff_lvl_easy_desc">znaki rozstawiane są \nw losowy sposób</string>
+    <string name="diff_lvl_hard_header">Trudny</string>
+    <string name="diff_lvl_hard_desc">komputer dąży do wygranej, \nblokuje gracza</string>
+
+
+</resources>

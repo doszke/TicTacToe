@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" android:orientation="vertical" android:gravity="center"
+        android:padding="30dp">
+
+    <TextView
+            android:text="@string/oponent_selection_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView"
+            style="@style/headertextstyle"
+            tools:layout_editor_absoluteY="153dp" tools:layout_editor_absoluteX="282dp"
+            android:layout_margin="10dp"/>
+
+
+    <TextView
+            android:text="@string/oponent_selection_ai"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:id="@+id/textView3"
+            style="@style/textstyle"
+            tools:layout_editor_absoluteX="159dp"
+            tools:layout_editor_absoluteY="229dp"
+            android:layout_margin="10dp"/>
+    <ImageButton
+            android:layout_width="170dp"
+            android:layout_height="170dp"
+            android:adjustViewBounds="true"
+            android:maxWidth="42dp"
+            android:maxHeight="42dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/pc"
+            android:id="@+id/imageButton4"
+            tools:layout_editor_absoluteY="260dp" tools:layout_editor_absoluteX="77dp"
+            android:backgroundTint="@color/bg"
+            android:contentDescription="@string/pc_icon_name"
+            android:layout_margin="10dp" android:onClick="chosenPc"/>
+    <TextView
+            android:text="@string/oponent_selection_2_players"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView4"
+            style="@style/textstyle"
+            tools:layout_editor_absoluteX="156dp" tools:layout_editor_absoluteY="244dp"
+            android:layout_margin="10dp"/>
+    <ImageButton
+            android:layout_width="170dp"
+            android:layout_height="170dp"
+            android:adjustViewBounds="true"
+            android:maxWidth="42dp"
+            android:maxHeight="42dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/two_players"
+            android:id="@+id/chosen_two_players"
+            android:backgroundTint="@color/bg"
+            tools:layout_editor_absoluteX="45dp" tools:layout_editor_absoluteY="322dp"
+            android:contentDescription="@string/two_player_icon_name"
+            android:layout_margin="10dp" android:onClick="chosenTwoPlayers"/>
+
+
+</LinearLayout>
