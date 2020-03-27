@@ -19,7 +19,7 @@ class OpponentSelectionActivity : AppCompatActivity() {
 
     fun chosenTwoPlayers(view : View) {
         setContentView(R.layout.activity_game)
-        val intent = Intent(applicationContext, GameActivity::class.java).apply{
+        val intent = Intent(applicationContext, TicTacToeActivity::class.java).apply{
             putExtra("mode", UserChoice.TWO_PLAYERS)
         }
         startActivity(intent)
