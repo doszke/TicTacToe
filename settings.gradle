@@ -1,1 +1,1 @@
-include ':app', ':zad1'
+include ':app'

@@ -1,6 +1,6 @@
-package e.ib.zad1.ai
+package e.ib.tictactoe.impl.ai
 
-import e.ib.zad1.Item
+import e.ib.tictactoe.impl.Item
 import java.util.*
 
 abstract class AI() {
