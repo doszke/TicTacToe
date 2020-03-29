@@ -1,10 +1,13 @@
 package e.ib.tictactoe.impl.ai
 
+
 import android.util.Log
 import e.ib.tictactoe.impl.Item
 import java.util.*
 
-abstract class AI() {
+abstract class AI()  {
+
+
 
     protected val VALUE_WHERE_PLACED = -50_000
     protected val MUST_PLACE_HERE = 50_000

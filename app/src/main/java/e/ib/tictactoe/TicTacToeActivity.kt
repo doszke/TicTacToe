@@ -25,11 +25,15 @@ class TicTacToeActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle?) {
         super.onSaveInstanceState(outState)
+        outState?.putSerializable("ttt", ttt)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
         super.onRestoreInstanceState(savedInstanceState)
-
+        val serialized = savedInstanceState?.getSerializable("ttt")
+        if (serialized is TicTacToe){
+            ttt.restore(serialized)
+        }
     }
 
 

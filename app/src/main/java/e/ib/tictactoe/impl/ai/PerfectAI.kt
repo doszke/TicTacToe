@@ -1,10 +1,15 @@
 package e.ib.tictactoe.impl.ai
 
 import e.ib.tictactoe.impl.Item
+import java.io.Serializable
 import java.lang.IllegalArgumentException
 
 //algorytm rozwiązywania kólka i krzyżyk w sposób najbardziej optymalny
-class PerfectAI(override val BOARD : Array<Array<Item>>, override val AImarker : Item, override val playerMarker: Item) : AI() {
+class PerfectAI(override val BOARD : Array<Array<Item>>, override val AImarker : Item, override val playerMarker: Item) : AI(), Serializable {
+
+    companion object {
+        const val serialVersionUID = 1L
+    }
 
     override fun costMap(): Array<Array<Int>> {
 

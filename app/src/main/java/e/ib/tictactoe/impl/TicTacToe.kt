@@ -6,16 +6,21 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import e.ib.tictactoe.R
 import e.ib.tictactoe.impl.ai.AI
 import e.ib.tictactoe.impl.ai.PerfectAI
 import e.ib.tictactoe.impl.ai.RandomAI
 import java.util.*
 import kotlin.math.floor
+import java.io.Serializable
+
 
 open class TicTacToe
 @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) :
-    View(context, attrs, defStyle) {
+    View(context, attrs, defStyle), Serializable {
+
+    companion object {
+        const val serialVersionUID = 1L
+    }
 
     //protected open- potrzebne do renderu obrazka na mainActivity
     protected open var sideLen = width / 3
@@ -34,7 +39,7 @@ open class TicTacToe
     private var selectionI: Float = -1f
     private var selectionJ: Float = -1f
 
-    protected open val black = Paint(Color.BLACK)
+    @Transient protected open val black = Paint(Color.BLACK)
 
     /**
      * Set to 0 for row win, 1 for column win, 2 for cross win
@@ -47,9 +52,11 @@ open class TicTacToe
     private var winParam = -1
 
     private var ai: AI? = null
-    private val queue: Queue<Item> = LinkedList<Item>()
+    private var queue: Queue<Item> = LinkedList<Item>()
 
     init {
+        //zapis i odczyt stanu po obrocie ekranu
+        isSaveEnabled = true
         this.setOnClickListener { this.clickPerformed(it) } //
         this.setOnTouchListener { view, event -> this.myOnTouchEvent(view, event) } //domyślny
     }
@@ -57,6 +64,35 @@ open class TicTacToe
     fun start(){
         clickPerformed(this) //uruchamiam w ten sposób
     }
+
+
+    fun restore(deserialized : TicTacToe?) : Unit {
+        if (deserialized != null) {
+            this.selectionI = deserialized.selectionI
+        }
+        if (deserialized != null) {
+            this.selectionJ = deserialized.selectionJ
+        }
+        if (deserialized != null) {
+            this.BOARD = deserialized.BOARD
+        }
+        if (deserialized != null) {
+            this.queue = deserialized.queue
+        }
+        if (deserialized != null) {
+            this.currentPlayer  = deserialized.currentPlayer
+        }
+        if (deserialized != null) {
+            this.winType = deserialized.winType
+        }
+        if (deserialized != null) {
+            this.winParam = deserialized.winParam
+        }
+        if (deserialized != null) {
+            this.ai = deserialized.ai
+        }
+    }
+
 
     fun initializeGame(choice : UserChoice?) : TicTacToe {
         val r = Random()
@@ -288,7 +324,7 @@ open class TicTacToe
     /* draw util */
     override fun onDraw(canvas: Canvas?) {
         init()
-        val bgColor = context.getColor(R.color.bg)
+        val bgColor = context.getColor(e.ib.tictactoe.R.color.bg)
         canvas?.drawColor(bgColor)
         this.drawBoard(canvas)
         when (winType) {
