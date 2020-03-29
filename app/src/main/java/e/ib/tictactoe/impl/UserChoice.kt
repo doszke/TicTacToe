@@ -1,4 +1,4 @@
-package e.ib.tictactoe
+package e.ib.tictactoe.impl
 
 enum class UserChoice {
 

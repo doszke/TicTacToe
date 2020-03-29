@@ -1,51 +1,52 @@
 package e.ib.tictactoe
 
+import android.content.Intent
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
-import android.widget.ImageButton
-import android.widget.TableLayout
-import android.widget.TableRow
-import e.ib.tictactoe.impl.Item
-import e.ib.tictactoe.impl.Item.*
-import e.ib.tictactoe.impl.ai.AI
-import java.util.*
-import java.lang.Math.abs
+import e.ib.tictactoe.impl.TicTacToe
+import e.ib.tictactoe.impl.UserChoice
 
 class TicTacToeActivity : AppCompatActivity() {
+
+    private var choice : UserChoice? = null
+    private lateinit var ttt : TicTacToe
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
+        choice = intent.getSerializableExtra("mode") as UserChoice
+        ttt = findViewById(R.id.board)
+        ttt.initializeGame(choice)
+            .start()
     }
 
-    /*
-    private fun game() {
-        while(this.checkIfStillPlaying()) {
-            if (isChosen) {
-                val coords = getCoordsOfSelected()
-                if (this.placeMarker(coords)) {
-                    chosen?.setBackgroundResource(if (currentPlayer == O) R.drawable.o else R.drawable.x)
-                }
-                chosen = null
-                isChosen = false
-            }
 
-        }
-    }*/
-
-    /*
-    private fun getCoordsOfSelected() : Array<Int> {
-        for(i in 0 until 3){
-            val row = table.getChildAt(i) as TableRow
-            for(j in 0 until 3){
-                if (row.getChildAt(j) == chosen) return arrayOf(i, j)
-            }
-        }
-        throw Exception()
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
     }
-*/
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle?) {
+        super.onRestoreInstanceState(savedInstanceState)
+
+    }
+
+
+    fun reset(view : View) {
+        val intent = Intent(applicationContext, TicTacToeActivity::class.java).apply {
+            putExtra("mode", choice)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK) //czysty rozruch aktywności
+        }
+        startActivity(intent)
+    }
+
+    fun main(view : View) {
+        val intent = Intent(applicationContext, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK) //czysty rozruch aktywności
+        }
+        startActivity(intent)
+    }
 
 
 }

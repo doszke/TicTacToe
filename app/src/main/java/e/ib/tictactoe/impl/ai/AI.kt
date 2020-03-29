@@ -1,5 +1,6 @@
 package e.ib.tictactoe.impl.ai
 
+import android.util.Log
 import e.ib.tictactoe.impl.Item
 import java.util.*
 
@@ -68,6 +69,7 @@ abstract class AI() {
             }
         }
         //jeżeli jest kilka najwyżej puntkowanych miejsc, wybierz losowe
+        Log.d("output.size", output.size.toString())
         return output[Random().nextInt(output.size)]
     }
 

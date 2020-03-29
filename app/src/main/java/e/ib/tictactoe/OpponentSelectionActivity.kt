@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
+import e.ib.tictactoe.impl.UserChoice
 
 class OpponentSelectionActivity : AppCompatActivity() {
 
@@ -18,9 +19,9 @@ class OpponentSelectionActivity : AppCompatActivity() {
     }
 
     fun chosenTwoPlayers(view : View) {
-        setContentView(R.layout.activity_game)
         val intent = Intent(applicationContext, TicTacToeActivity::class.java).apply{
             putExtra("mode", UserChoice.TWO_PLAYERS)
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
         startActivity(intent)
     }

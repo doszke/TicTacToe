@@ -15,6 +15,8 @@
     <string name="diff_lvl_easy_desc">znaki rozstawiane są \nw losowy sposób</string>
     <string name="diff_lvl_hard_header">Trudny</string>
     <string name="diff_lvl_hard_desc">komputer dąży do wygranej, \nblokuje gracza</string>
+    <string name="gameReset">Reset</string>
+    <string name="btn_game_main">Ekran główny</string>
 
 
 </resources>

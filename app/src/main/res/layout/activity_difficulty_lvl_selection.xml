@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent"
-              android:layout_height="match_parent" android:gravity="center" android:orientation="vertical"
-              android:background="#F9F9F9">
+              android:layout_height="match_parent" android:gravity="center" android:orientation="vertical">
 
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
               style="@style/headertextstyle"
@@ -10,7 +9,9 @@
     <TextView
             android:text="@string/diff_lvl_easy_header"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/textView6"/>
+            android:layout_height="wrap_content" android:id="@+id/textView6"
+            android:layout_margin="10dp"
+            style="@style/textstyle"/>
     <ImageButton
             app:srcCompat="@drawable/baby_yoda" android:id="@+id/imageButton"
             android:layout_width="170dp"
@@ -19,12 +20,24 @@
             android:adjustViewBounds="true"
             android:maxWidth="50dp"
             android:maxHeight="50dp"
-            android:backgroundTint="@color/bg"
-    />
+            android:onClick="onClickEasy"
+            android:layout_margin="10dp"/>
     <TextView
             android:text="@string/diff_lvl_hard_header"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/textView7"/>
+            android:layout_height="wrap_content" android:id="@+id/textView7"
+            android:layout_margin="10dp"
+            style="@style/textstyle"/>
 
+    <ImageButton
+            app:srcCompat="@drawable/yoda" android:id="@+id/imageButton2"
+            android:layout_width="170dp"
+            android:layout_height="170dp"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:maxWidth="50dp"
+            android:maxHeight="50dp"
+            android:onClick="onClickHard"
+            android:layout_margin="10dp"/>
 
 </LinearLayout>

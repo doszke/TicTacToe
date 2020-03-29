@@ -6,29 +6,35 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import e.ib.tictactoe.TicTacToeActivity
+import e.ib.tictactoe.R
 import e.ib.tictactoe.impl.ai.AI
+import e.ib.tictactoe.impl.ai.PerfectAI
+import e.ib.tictactoe.impl.ai.RandomAI
 import java.util.*
 import kotlin.math.floor
 
-class TicTacToe : View {
+open class TicTacToe
+@JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) :
+    View(context, attrs, defStyle) {
+
+    //protected open- potrzebne do renderu obrazka na mainActivity
+    protected open var sideLen = width / 3
+    protected open var padding = 0.1 * width
+    protected open var _padding = 0.05 * width
+
+    protected open var BOARD: Array<Array<Item>> = arrayOf(
+        arrayOf(Item.EMPTY, Item.EMPTY, Item.EMPTY),
+        arrayOf(Item.EMPTY, Item.EMPTY, Item.EMPTY),
+        arrayOf(Item.EMPTY, Item.EMPTY, Item.EMPTY)
+    )
+
+    protected open lateinit var currentPlayer: Item
 
 
-    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle) {init()}
-    constructor(context: Context, attrs: AttributeSet) : this(context, attrs, 0)
+    private var selectionI: Float = -1f
+    private var selectionJ: Float = -1f
 
-    var currentPlayer : Item
-    private var ai : AI? = null
-    private val queue : Queue<Item> =  LinkedList<Item>()
-
-    private var sideLen = width/3
-    private var padding = 0.1*width
-    private var _padding = 0.05*width
-
-    private var selection_i : Float = -1f
-    private var selection_j : Float = -1f
-
-    private val black = Paint(Color.BLACK)
+    protected open val black = Paint(Color.BLACK)
 
     /**
      * Set to 0 for row win, 1 for column win, 2 for cross win
@@ -40,86 +46,132 @@ class TicTacToe : View {
      */
     private var winParam = -1
 
-    var BOARD : Array<Array<Item>> = arrayOf(
-        arrayOf(Item.EMPTY, Item.EMPTY, Item.EMPTY),
-        arrayOf(Item.EMPTY, Item.EMPTY, Item.EMPTY),
-        arrayOf(Item.EMPTY, Item.EMPTY, Item.EMPTY)
-    )
-
+    private var ai: AI? = null
+    private val queue: Queue<Item> = LinkedList<Item>()
 
     init {
-        val r  = Random()
+        this.setOnClickListener { this.clickPerformed(it) } //
+        this.setOnTouchListener { view, event -> this.myOnTouchEvent(view, event) } //domyślny
+    }
+
+    fun start(){
+        clickPerformed(this) //uruchamiam w ten sposób
+    }
+
+    fun initializeGame(choice : UserChoice?) : TicTacToe {
+        val r = Random()
         val firstPlayer = if (r.nextBoolean()) Item.X else Item.O
         val otherPlayer = if (firstPlayer == Item.X) Item.O else Item.X
         for (i in 0 until 9) {
-            queue.add(if(i%2==0) firstPlayer else otherPlayer)
+            queue.add(if (i % 2 == 0) firstPlayer else otherPlayer)
         }
         currentPlayer = queue.poll()
-        init()
-        this.setOnClickListener { this.clickPerformed(it) } //
-
+        if (choice == UserChoice.TWO_PLAYERS || choice == null) {
+            ai = null
+        } else {
+            val aiMarker = if (r.nextBoolean()) Item.X else Item.O
+            val playerMarker = if (aiMarker == Item.X) Item.O else Item.X
+            if (choice == UserChoice.COMPUTER_EASY) ai = RandomAI(BOARD, aiMarker, playerMarker)
+            else if (choice == UserChoice.COMPUTER_HARD) ai = PerfectAI(BOARD, aiMarker, playerMarker)
+        }
+        return this
     }
+
+
+    protected fun init() {
+        black.style = Paint.Style.STROKE
+        black.strokeWidth = width / 50f
+        sideLen = width / 3
+        padding = 0.1 * width
+        _padding = padding / 2
+    }
+
 
     /**
      * Idle onClickListener
      */
-    fun idle(view : View) {}
+    protected fun idleOnClick(view: View) {
 
-    /**
-     * Main onCLickListener for this View. It places the marker on the field selected by the user by touch and checks for winner.
-     */
-    fun clickPerformed(view : View) {
-        Log.d("SELECTION_COORDS", "$selection_i $selection_j ")
-        if (selection_i != -1f && selection_j != -1f){
-
-            //TODO START refactor this
-            if (placeMarker(selection_i.toInt(), selection_j.toInt())) { //czy umieszczono znak
-                if (queue.isNotEmpty()) { //kolejka nie jest pusta
-                    if (validateBoard() != Item.EMPTY) { //jest wygrany
-                        setPreciseWinnerInfo()
-                        this.setOnClickListener { idle(it)}
-                    } else {  //nie ma wygranego
-                        currentPlayer = queue.poll()
-                    }
-                } else { //kolejka jest pusta
-                    if (validateBoard() != Item.EMPTY) { //jest wygrany
-                        setPreciseWinnerInfo()
-                    } else { //nie ma wygranego i brak wolnych pozycji -> remis
-                        //TODO remis
-                    }
-                    this.setOnClickListener { idle(it)}
-                }
-                Log.d("statuswygranej", "$winType $winParam")
-                //po każdym umieszczonym znaku odświeżam onDraw
-                this.invalidate()
-            }
-            //TODO END refactor this
-        }
     }
 
     /**
-     * Draw parameters init
+     * OnCLickListener
      */
-    private fun init() {
-        black.style = Paint.Style.STROKE
-        black.strokeWidth = width/50f
-        sideLen = width/3
-        padding = 0.1*width
-        _padding = padding/2
+    private fun clickPerformed(view: View) {
+        Log.d("TicTacToe.clickPerform" ,"begin")
+        if (queue.size == 8 && ai?.AImarker == currentPlayer)
+            playRoundAi() //gdy AI zaczyna
+        if (selectionI != -1f && selectionJ != -1f) {
+            if (ai != null) playRoundAi() else playRound()
+        }
+        Log.d("TicTacToe.clickPerform" ,"end")
+        this.invalidate()
+    }
+
+
+    private fun playRound() {
+        if (placeMarker(selectionI.toInt(), selectionJ.toInt())) { //czy umieszczono znak
+            if (queue.isNotEmpty()) { //kolejka nie jest pusta
+                if (validateBoard() != Item.EMPTY) { //jest wygrany
+                    setPreciseWinnerInfo()
+                    this.setOnClickListener { idleOnClick(it) }
+                } else {  //nie ma wygranego
+                    currentPlayer = queue.poll()
+                }
+            } else { //kolejka jest pusta
+                if (validateBoard() != Item.EMPTY) { //jest wygrany
+                    setPreciseWinnerInfo()
+                } //nie ma wygranego i brak wolnych pozycji -> remis
+            this.setOnClickListener { idleOnClick(it) }
+            }
+            //po każdym umieszczonym znaku odświeżam onDraw
+        }
+        this.invalidate()
+    }
+
+    /**
+     * Method used to play with AI
+     */
+    private fun playRoundAi() {
+        Log.d("TicTacToe.clickPerform" ,"playRoundAi")
+        if (currentPlayer == ai?.AImarker) {
+            Log.d("TicTacToe.clickPerform" ,"ai marker")
+            this.setOnTouchListener { v, event -> idleOnTouchEvent(v, event) } //wyłączam sterowanie przez gracza (przechwytywanie wsp)
+            val coords = ai?.getCoords() //pobieram położenie znaku AI
+            if (coords != null) {
+                selectionI = coords[0].toFloat() //ustawiam do kontenerów położenia na ekranie
+                selectionJ = coords[1].toFloat()
+            }
+            playRound() //umieszczam na tablicy i waliduję
+            this.setOnTouchListener { v, event -> myOnTouchEvent(v, event) } //ustawiam myOnTouchEventListener z powrotem
+        } else {
+            Log.d("TicTacToe.clickPerform" ,"player marker $selectionI $selectionJ")
+            playRound()
+        }
+        this.invalidate()
+    }
+
+    fun idleOnTouchEvent(view: View, event: MotionEvent?): Boolean {
+        return false
     }
 
     //[0-width/3) -> 0, [width/3, 2*width/3) -> 1, [2*width/3, width) -> 2, width -> 2
     //metoda mapuje współprzędne piksela naciśniętego przez użytkownika na indeksy tablicy przechowującej Item'y
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        val x = event?.rawX
-        val y = event?.rawY
-        if (x is Float && y is Float) {
-            var i = floor(x / sideLen)
-            var j = floor(y / sideLen)
-            selection_i = if (i == 3.0f) 2f else i //idealnie na krawędzi wyniesie 3
-            selection_j = if (j == 3.0f) 2f else j
-            Log.d("MyCanvas\$onTouchEvent", "$i $j")
+    fun myOnTouchEvent(view: View, event: MotionEvent?): Boolean {
+        val absCoords = IntArray(2)
+        getLocationOnScreen(absCoords) //pozycja widoku na ekranie
+        val (mX, mY) = absCoords
+        var x : Float = 0f
+        var y : Float = 0f
+        if (event != null) {
+            x = event.rawX - mX //rawX i rawY względem 0,0
+            y = event.rawY - mY //po odjęciu od położenia view mamy x i y względem górnego lewego rogu view
         }
+        val i = floor(x / sideLen)
+        val j = floor(y / sideLen)
+        selectionI = if (i == 3.0f) 2f else i //idealnie na krawędzi wyniesie 3
+        selectionJ = if (j == 3.0f) 2f else j
+        Log.d("MyCanvas\$onTouchEvent", "$i $j")
         performClick()
         return super.onTouchEvent(event)
     }
@@ -130,7 +182,7 @@ class TicTacToe : View {
         return true
     }
 
-    fun placeMarker(i : Int, j : Int) : Boolean{
+    fun placeMarker(i: Int, j: Int): Boolean {
         if (BOARD[i][j] == Item.EMPTY) {
             BOARD[i][j] = currentPlayer
             return true
@@ -139,24 +191,24 @@ class TicTacToe : View {
     }
 
 
-
-
-    fun setPreciseWinnerInfo(){
+    fun setPreciseWinnerInfo() {
         //currentPlayer to ostatni położony znak, w przypadku wygranej
         when (currentPlayer) {
             validateRows() -> {
                 this.winType = 0
                 for (i in 0 until 3) {
-                    if ((BOARD[i][0] == BOARD[i][1]) && BOARD[i][1] == BOARD[i][2]) {
+                    if ((BOARD[i][0] == BOARD[i][1]) && BOARD[i][1] == BOARD[i][2] && BOARD[i][0] != Item.EMPTY) {
                         this.winParam = i
+                        break
                     }
                 }
             }
             validateColumns() -> {
                 this.winType = 1
                 for (i in 0 until 3) {
-                    if ((BOARD[0][i] == BOARD[1][i]) && BOARD[1][i] == BOARD[2][i]) {
+                    if ((BOARD[0][i] == BOARD[1][i]) && BOARD[1][i] == BOARD[2][i] && BOARD[0][i] != Item.EMPTY) {
                         this.winParam = i
+                        break
                     }
                 }
             }
@@ -168,22 +220,29 @@ class TicTacToe : View {
     }
 
 
-    private fun validateBoard() : Item {
+    private fun validateBoard(): Item {
         val col = validateColumns()
         val cross = validateCross()
         val row = validateRows()
         return if (col != Item.EMPTY) col else if (cross != Item.EMPTY) cross else row //jak row też bedzie EMPTY to całośc będzie EMPTY, czyli nikt nie wygrał
     }
 
-    private fun validateCross() : Item {
-        var placeholder = arrayOf(BOARD[0][0].value + BOARD[1][1].value + BOARD[2][2].value, BOARD[0][2].value + BOARD[1][1].value + BOARD[2][0].value)
+    private fun validateCross(): Item {
+        var placeholder = arrayOf(
+            BOARD[0][0].value + BOARD[1][1].value + BOARD[2][2].value,
+            BOARD[0][2].value + BOARD[1][1].value + BOARD[2][0].value
+        )
         var lastItems = arrayOf(BOARD[2][2], BOARD[2][0])
         return validate(placeholder, lastItems)
     }
 
-    private fun validateColumns() : Item {
+    private fun validateColumns(): Item {
         val output = arrayOf(0, 0, 0)
-        val lastItem = arrayOf<Item>(Item.EMPTY, Item.EMPTY, Item.EMPTY)
+        val lastItem = arrayOf<Item>(
+            Item.EMPTY,
+            Item.EMPTY,
+            Item.EMPTY
+        )
         for (i in 0..2) {
             for (j in 0..2)
                 output[j] += BOARD[i][j].value
@@ -192,9 +251,13 @@ class TicTacToe : View {
         return validate(output, lastItem)
     }
 
-    private fun validateRows() : Item {
+    private fun validateRows(): Item {
         val output = arrayOf(0, 0, 0)
-        val lastItem = arrayOf<Item>(Item.EMPTY, Item.EMPTY, Item.EMPTY)
+        val lastItem = arrayOf<Item>(
+            Item.EMPTY,
+            Item.EMPTY,
+            Item.EMPTY
+        )
         for (i in 0..2) {
             BOARD[i].forEach { output[i] += it.value }
             lastItem[i] = BOARD[i][2]
@@ -202,14 +265,14 @@ class TicTacToe : View {
         return validate(output, lastItem)
     }
 
-    private fun validate(output: Array<Int>, lastItem: Array<Item>) : Item {
+    private fun validate(output: Array<Int>, lastItem: Array<Item>): Item {
         for (i in 0 until output.size)
             if (Math.abs(output[i]) == 3) return lastItem[i]
         return Item.EMPTY
     }
 
     @Deprecated("Console use only")
-    override fun toString() : String{
+    override fun toString(): String {
         val sb = StringBuilder("\n")
         for (i in 0..2) {
             for (j in 0..2) {
@@ -222,12 +285,11 @@ class TicTacToe : View {
     }
 
 
-
-
-
+    /* draw util */
     override fun onDraw(canvas: Canvas?) {
         init()
-        canvas?.drawColor(Color.WHITE)
+        val bgColor = context.getColor(R.color.bg)
+        canvas?.drawColor(bgColor)
         this.drawBoard(canvas)
         when (winType) {
             0 -> //row win
@@ -240,60 +302,71 @@ class TicTacToe : View {
         }
     }
 
-    private fun drawBoard(canvas : Canvas?) {
+    protected fun drawBoard(canvas: Canvas?) {
         canvas?.drawLine(sideLen.toFloat(), 0f, sideLen.toFloat(), width.toFloat(), black)
-        canvas?.drawLine(2* sideLen.toFloat(), 0f, 2*sideLen.toFloat(), width.toFloat(), black)
+        canvas?.drawLine(2 * sideLen.toFloat(), 0f, 2 * sideLen.toFloat(), width.toFloat(), black)
         canvas?.drawLine(0f, sideLen.toFloat(), width.toFloat(), sideLen.toFloat(), black)
-        canvas?.drawLine(0f, 2* sideLen.toFloat(), width.toFloat(), 2*sideLen.toFloat(), black)
+        canvas?.drawLine(0f, 2 * sideLen.toFloat(), width.toFloat(), 2 * sideLen.toFloat(), black)
         this.drawBoardContent(canvas)
     }
 
-    private fun drawBoardContent(canvas: Canvas?) {
+    protected fun drawBoardContent(canvas: Canvas?) {
         for (i in 0 until 3) {
             for (j in 0 until 3) {
-                if (BOARD[i][j] == Item.X) drawX(canvas, i, j) else if (BOARD[i][j] == Item.O) drawO(canvas, i, j)
+                if (BOARD[i][j] == Item.X) drawX(canvas, i, j) else if (BOARD[i][j] == Item.O) drawO(
+                    canvas,
+                    i,
+                    j
+                )
             }
         }
     }
 
-
-    private fun drawX(canvas : Canvas?, i : Int, j : Int){
+    protected fun drawX(canvas: Canvas?, i: Int, j: Int) {
         val b = bounds(i, j)
         canvas?.drawLine(b[0], b[1], b[2], b[3], black)
         canvas?.drawLine(b[0], b[3], b[2], b[1], black)
     }
 
-    private fun drawO(canvas : Canvas?, i : Int, j : Int) {
+    protected fun drawO(canvas: Canvas?, i: Int, j: Int) {
         val b = bounds(i, j)
-        val x = (b[0] + b[2])/2
-        val y = (b[1] + b[3])/2
-        canvas?.drawCircle(x, y, (sideLen/2 - padding).toFloat(), black)
+        val x = (b[0] + b[2]) / 2
+        val y = (b[1] + b[3]) / 2
+        canvas?.drawCircle(x, y, (sideLen / 2 - padding).toFloat(), black)
     }
 
-    private fun drawWonCol(canvas : Canvas?, row : Int) {
-        canvas?.drawLine(_padding.toFloat(), (row*sideLen + sideLen/2).toFloat(),
-            (width - _padding).toFloat(), (row*sideLen + sideLen/2).toFloat(), black)
+    protected fun drawWonCol(canvas: Canvas?, row: Int) {
+        canvas?.drawLine(
+            _padding.toFloat(), (row * sideLen + sideLen / 2).toFloat(),
+            (width - _padding).toFloat(), (row * sideLen + sideLen / 2).toFloat(), black
+        )
     }
 
-    private fun drawWonRow(canvas : Canvas?, col : Int){
-        canvas?.drawLine((col*sideLen + sideLen/2).toFloat(),_padding.toFloat(),
-            (col*sideLen + sideLen/2).toFloat(), (width - _padding).toFloat(),  black)
+    protected fun drawWonRow(canvas: Canvas?, col: Int) {
+        canvas?.drawLine(
+            (col * sideLen + sideLen / 2).toFloat(), _padding.toFloat(),
+            (col * sideLen + sideLen / 2).toFloat(), (width - _padding).toFloat(), black
+        )
     }
 
-    private fun drawWonCross(canvas : Canvas?, param : Int) {
-        if (param == 0) canvas?.drawLine(_padding.toFloat(), _padding.toFloat(), (width - _padding).toFloat(),
-            (width - _padding).toFloat(), black)
+    protected fun drawWonCross(canvas: Canvas?, param: Int) {
+        if (param == 0) canvas?.drawLine(
+            _padding.toFloat(), _padding.toFloat(), (width - _padding).toFloat(),
+            (width - _padding).toFloat(), black
+        )
         else if (param == 1) {
-            canvas?.drawLine(_padding.toFloat(), (width - _padding).toFloat(),
-                (width - _padding).toFloat(),_padding.toFloat(), black)
+            canvas?.drawLine(
+                _padding.toFloat(), (width - _padding).toFloat(),
+                (width - _padding).toFloat(), _padding.toFloat(), black
+            )
         }
     }
 
-    private fun bounds(i : Int, j : Int) : Array<Float>{
-        val _x : Float = (i*sideLen + padding).toFloat()
-        val _y : Float = (j*sideLen + padding).toFloat()
-        val x_ : Float = (i*sideLen + sideLen - padding).toFloat()
-        val y_ : Float = (j*sideLen + sideLen - padding).toFloat()
+    private fun bounds(i: Int, j: Int): Array<Float> {
+        val _x: Float = (i * sideLen + padding).toFloat()
+        val _y: Float = (j * sideLen + padding).toFloat()
+        val x_: Float = (i * sideLen + sideLen - padding).toFloat()
+        val y_: Float = (j * sideLen + sideLen - padding).toFloat()
         return arrayOf(_x, _y, x_, y_)
     }
 
